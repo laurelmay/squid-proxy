@@ -1,0 +1,13 @@
+{{- if $.Values.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "squid.fullname" . }}-data-claim
+  labels:
+    {{- include "squid.labels" . | nindent 4 }}
+spec:
+  accessModes: {{- $.Values.persistence.accessModes | toYaml | nindent 4 }}
+  storageClassName: {{ $.Values.persistence.storageClassName }}
+  resources: {{- $.Values.persistence.resources | toYaml | nindent 4 }}
+{{- end }}

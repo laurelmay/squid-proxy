@@ -1,0 +1,45 @@
+---
+name: Build container image
+on:
+  push:
+    branches: [main]
+    paths:
+      - "image/**"
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  build-and-push-container:
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    steps:
+      - name: Install podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman buildah qemu-user-static
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: squid
+          tags: latest 6.13-alpine3.21
+          archs: amd64, arm64
+          context: image
+          build-args: |
+            ALPINE_VERSION=3.21
+          containerfiles: |
+            image/Dockerfile
+          oci: true
+      - name: Push to ghcr.io
+        id: push
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}

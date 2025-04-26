@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "squid.fullname" . }}-proxy
+  labels:
+    {{- include "squid.labels" . | nindent 4 }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.service.dnsName }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if $.Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  externalTrafficPolicy: Local
+  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: proxy
+      protocol: TCP
+      name: proxy
+  selector:
+    {{- include "squid.selectorLabels" . | nindent 4 }}

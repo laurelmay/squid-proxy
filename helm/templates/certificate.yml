@@ -1,0 +1,30 @@
+{{- if not $.Values.certificate.issuer.existingSecret }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "squid.fullname" . }}-issuer
+  labels:
+    {{- include "squid.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "squid.fullname" . }}-selfsigned-ca
+  labels:
+    {{- include "squid.labels" . | nindent 4 }}
+spec:
+  isCA: true
+  commonName: {{ $.Values.certificate.issuer.commonName }}
+  secretName: {{ include "squid.fullname" . }}-root-secret
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  issuerRef:
+    name: {{ include "squid.fullname" . }}-issuer
+    kind: Issuer
+    group: cert-manager.io
+{{- end }}
+
